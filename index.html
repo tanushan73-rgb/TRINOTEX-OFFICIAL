@@ -1,0 +1,946 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>TriNoteX – Student Notes Marketplace</title>
+  <meta name="description" content="TriNoteX: A student-to-student marketplace to upload, sell, and buy notes. 10% platform fee auto-deducted.">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Icons -->
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@4.3.0/fonts/remixicon.css" rel="stylesheet">
+  <!-- Google Sign-In API -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <!-- GSAP for advanced animations -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+  <!-- Particle.js for background effects -->
+  <script src="https://cdn.jsdelivr.net/particles.js/2.0.0/particles.min.js"></script>
+  <!-- Smooth font rendering -->
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@100;200;300;400;500;600;700;800;900&display=swap');
+    
+    html, body { 
+      height: 100%; 
+      font-family: 'Outfit', sans-serif;
+      scroll-behavior: smooth;
+    }
+    
+    /* Cosmic gradient background */
+    body {
+      background: linear-gradient(125deg, #0a0a1a 0%, #0f172a 30%, #1e293b 70%, #0f172a 100%);
+      position: relative;
+      overflow-x: hidden;
+    }
+    
+    /* Particle canvas */
+    #particles-js {
+      position: fixed;
+      width: 100%;
+      height: 100%;
+      z-index: -1;
+      top: 0;
+      left: 0;
+    }
+    
+    /* Glass effect */
+    .glass { 
+      backdrop-filter: blur(16px) saturate(180%); 
+      background: rgba(17, 25, 40, 0.65); 
+      border: 1px solid rgba(255,255,255,0.125); 
+      border-radius: 16px;
+    }
+    
+    /* Gradient text */
+    .grad-text { 
+      background: linear-gradient(90deg, #22d3ee, #a78bfa, #34d399, #22d3ee); 
+      background-size: 300% 100%;
+      -webkit-background-clip: text; 
+      background-clip: text; 
+      color: transparent;
+      animation: gradientShift 8s ease infinite;
+    }
+    
+    @keyframes gradientShift {
+      0% { background-position: 0% 50%; }
+      50% { background-position: 100% 50%; }
+      100% { background-position: 0% 50%; }
+    }
+    
+    /* Floating animation */
+    @keyframes floaty { 
+      0% { transform: translateY(0) rotate(0deg); } 
+      50% { transform: translateY(-15px) rotate(2deg); } 
+      100% { transform: translateY(0) rotate(0deg); } 
+    }
+    
+    .floaty { 
+      animation: floaty 6s ease-in-out infinite; 
+    }
+    
+    /* Fade-slide in */
+    .fadein { 
+      opacity: 0; 
+      transform: translateY(20px); 
+      transition: opacity .8s ease, transform .8s ease; 
+    }
+    
+    .fadein.show { 
+      opacity: 1; 
+      transform: translateY(0); 
+    }
+    
+    /* Button hover shine */
+    .btn-shine { 
+      position: relative; 
+      overflow: hidden;
+      transition: all 0.4s ease;
+    }
+    
+    .btn-shine::after { 
+      content:""; 
+      position:absolute; 
+      top:0; 
+      left:-100%; 
+      width:100%; 
+      height:100%; 
+      background: linear-gradient(120deg, transparent, rgba(255,255,255,.35), transparent); 
+      transform:skewX(-20deg); 
+    }
+    
+    .btn-shine:hover::after { 
+      left:100%; 
+      transition: left .8s ease; 
+    }
+    
+    /* Ripple */
+    .ripple { 
+      position: relative; 
+      overflow: hidden; 
+    }
+    
+    .ripple:after { 
+      content: ""; 
+      position: absolute; 
+      border-radius: 9999px; 
+      transform: scale(0); 
+      background: rgba(255,255,255,0.35); 
+      animation: ripple .8s linear; 
+    }
+    
+    @keyframes ripple { 
+      to { transform: scale(4); opacity: 0; } 
+    }
+    
+    /* Hide views utility */
+    .view { display: none; }
+    .view.active { display: block; }
+    
+    /* Custom scrollbar */
+    ::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    ::-webkit-scrollbar-track {
+      background: rgba(15, 23, 42, 0.5);
+    }
+    
+    ::-webkit-scrollbar-thumb {
+      background: linear-gradient(to bottom, #22d3ee, #a78bfa);
+      border-radius: 10px;
+    }
+    
+    /* Glow effects */
+    .glow {
+      box-shadow: 0 0 20px rgba(34, 211, 238, 0.2);
+    }
+    
+    .glow-purple {
+      box-shadow: 0 0 20px rgba(167, 139, 250, 0.2);
+    }
+    
+    .glow-green {
+      box-shadow: 0 0 20px rgba(52, 211, 153, 0.2);
+    }
+    
+    /* Starry night effect */
+    .stars {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      pointer-events: none;
+      z-index: -1;
+    }
+    
+    .star {
+      position: absolute;
+      background: white;
+      border-radius: 50%;
+      animation: twinkle linear infinite;
+    }
+    
+    @keyframes twinkle {
+      0%, 100% { opacity: 0.2; }
+      50% { opacity: 1; }
+    }
+    
+    /* Google Sign-In Button Styling */
+    .gsi-button {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: transparent;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      border-radius: 12px;
+      color: #e2e8f0;
+      cursor: pointer;
+      font-family: inherit;
+      font-size: 0.875rem;
+      height: 44px;
+      padding: 0 16px;
+      text-align: center;
+      transition: all 0.3s ease;
+      width: 100%;
+      margin-top: 16px;
+    }
+    
+    .gsi-button:hover {
+      background-color: rgba(255, 255, 255, 0.1);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+    }
+    
+    /* Hover lift effect */
+    .hover-lift {
+      transition: transform 0.3s ease, box-shadow 0.3s ease;
+    }
+    
+    .hover-lift:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 10px 25px rgba(0,0,0,0.2);
+    }
+    
+    /* Text stroke effect */
+    .text-stroke {
+      -webkit-text-stroke: 1px rgba(255,255,255,0.1);
+      color: transparent;
+    }
+    
+    /* Pulse animation */
+    @keyframes pulse {
+      0% { transform: scale(1); }
+      50% { transform: scale(1.05); }
+      100% { transform: scale(1); }
+    }
+    
+    .pulse {
+      animation: pulse 2s infinite;
+    }
+  </style>
+</head>
+<body class="min-h-screen text-slate-100 selection:bg-teal-400 selection:text-slate-900">
+  <!-- Particle Background -->
+  <div id="particles-js"></div>
+  
+  <!-- Starry background -->
+  <div class="stars"></div>
+
+  <!-- Global Top Nav -->
+  <header class="sticky top-0 z-50 bg-slate-950/80 backdrop-blur-xl border-b border-white/10">
+    <div class="max-w-7xl mx-auto px-4 py-3 flex items-center gap-3">
+      <div class="flex items-center gap-2">
+        <div class="w-10 h-10 rounded-2xl flex items-center justify-center glow" style="background: linear-gradient(135deg,#22d3ee,#a78bfa,#34d399);">
+          <!-- Inline SVG logo: book + T monogram -->
+          <svg width="34" height="34" viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg" aria-label="TriNoteX logo">
+            <defs>
+              <linearGradient id="g1" x1="0" x2="1" y1="0" y2="1">
+                <stop offset="0" stop-color="#ffffff" stop-opacity="0.95"/>
+                <stop offset="1" stop-color="#ffffff" stop-opacity="0.85"/>
+              </linearGradient>
+            </defs>
+            <!-- open book -->
+            <path d="M6 18c6-5 18-5 25-2 7-3 19-3 25 2v28c-7-5-18-6-25-3-7-3-19-2-25 3V18z" fill="#0f172a" opacity="0.06"/>
+            <path d="M10 20c5-4 15-4 22-1 7-3 17-3 22 1v24c-6-4-15-5-22-2-7-3-17-2-22 2V20z" fill="#ffffff"/>
+            <!-- pages lines -->
+            <path d="M12 22c6-2 12-2 18 0" stroke="#a78bfa" stroke-width="1.6" stroke-linecap="round"/> 
+            <path d="M12 26c6-2 12-2 18 0" stroke="#34d399" stroke-width="1.6" stroke-linecap="round"/>
+            <!-- T monogram -->
+            <rect x="28" y="18" width="8" height="2" rx="1" fill="#0f172a"/>
+            <rect x="30" y="20" width="4" height="14" rx="1" fill="#0f172a"/>
+          </svg>
+        </div>
+        <div>
+          <div class="text-lg font-bold tracking-tight">TriNoteX</div>
+          <div class="text-[10px] text-slate-400 -mt-1">by Shantanu • Shriansh • Abdul</div>
+        </div>
+      </div>
+      <nav class="ml-auto flex items-center gap-2 text-sm">
+        <button data-nav="#landing" class="px-4 py-2 rounded-xl hover:bg-white/10 transition-all duration-300 hover-lift">Home</button>
+        <button data-nav="#marketplace" class="px-4 py-2 rounded-xl hover:bg-white/10 transition-all duration-300 hover-lift">Marketplace</button>
+        <button data-nav="#dashboard" class="px-4 py-2 rounded-xl hover:bg-white/10 transition-all duration-300 hover-lift">Dashboard</button>
+        <button data-nav="#auth" class="px-4 py-2 rounded-xl hover:bg-white/10 transition-all duration-300 hover-lift">Login</button>
+        <button data-nav="#admin" class="px-4 py-2 rounded-xl hover:bg-white/10 transition-all duration-300 hover-lift">Admin</button>
+      </nav>
+    </div>
+  </header>
+
+  <!-- Landing -->
+  <section id="landing" class="view active">
+    <div class="max-w-7xl mx-auto px-4 py-16 grid md:grid-cols-2 gap-12 items-center min-h-[80vh]">
+      <div>
+        <h1 class="text-5xl md:text-7xl font-black leading-tight grad-text fadein text-stroke">The Student-to-Student<br><span class="text-stroke">Notes Marketplace</span></h1>
+        <p class="mt-6 text-slate-300 fadein text-lg">Upload. Sell. Earn 90%. We auto-manage payments, invoices, and delivery. Built for students, by students.</p>
+        <div class="mt-10 flex flex-wrap gap-4 fadein">
+          <button data-nav="#auth" class="btn-shine px-6 py-4 rounded-xl bg-teal-500 text-slate-900 font-bold text-lg hover-lift glow">Get Started</button>
+          <button data-nav="#marketplace" class="px-6 py-4 rounded-xl border border-white/20 hover:bg-white/10 transition-all duration-300 hover-lift">Explore Marketplace</button>
+        </div>
+        <div class="mt-12 grid grid-cols-3 gap-5 text-center">
+          <div class="glass rounded-2xl p-5 fadein hover-lift">
+            <div class="text-3xl font-extrabold grad-text" id="statUsers">0</div>
+            <div class="text-sm text-slate-400 mt-1">Students</div>
+          </div>
+          <div class="glass rounded-2xl p-5 fadein hover-lift">
+            <div class="text-3xl font-extrabold grad-text" id="statNotes">0</div>
+            <div class="text-sm text-slate-400 mt-1">Notes Listed</div>
+          </div>
+          <div class="glass rounded-2xl p-5 fadein hover-lift">
+            <div class="text-3xl font-extrabold grad-text" id="statVolume">₹0</div>
+            <div class="text-sm text-slate-400 mt-1">GMV</div>
+          </div>
+        </div>
+      </div>
+      <div class="relative">
+        <div class="absolute inset-0 -z-10 bg-gradient-to-tr from-purple-500/30 via-teal-400/20 to-emerald-400/30 rounded-3xl blur-3xl scale-110 pulse"></div>
+        <div class="glass rounded-3xl p-6 border-white/10 floaty hover-lift">
+          <img src="https://images.unsplash.com/photo-1513258496099-48168024aec0?q=80&w=1400&auto=format&fit=crop" alt="Notes" class="rounded-2xl shadow-2xl">
+          <div class="mt-5 text-sm text-slate-300 flex items-center">
+            <div class="w-4 h-4 rounded-full bg-teal-400 mr-2"></div>
+            Secure. Fast. Student-first. 10% platform fee auto-deducted.
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Auth -->
+  <section id="auth" class="view py-20">
+    <div class="max-w-5xl mx-auto px-4 grid md:grid-cols-2 gap-12 items-center">
+      <div class="glass p-10 rounded-3xl border-white/10 hover-lift">
+        <h2 class="text-3xl font-bold grad-text">Login / Sign up</h2>
+        <p class="text-md text-slate-400 mt-2">Email & password or use Google sign-in.</p>
+        <form id="authForm" class="mt-8 space-y-5">
+          <input id="authEmail" type="email" placeholder="Email" class="w-full px-5 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all">
+          <input id="authPass" type="password" placeholder="Password" class="w-full px-5 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all">
+          <button class="btn-shine w-full px-5 py-3 rounded-xl bg-teal-500 text-slate-900 font-bold text-md hover-lift glow">Continue</button>
+        </form>
+        <!-- Google Sign-In Button -->
+        <div id="g_id_onload"
+          data-client_id="767924256768-ofrclj3e5ugksmh8c81074cq7kjercki.apps.googleusercontent.com"
+          data-context="signin"
+          data-ux_mode="popup"
+          data-callback="handleGoogleSignIn"
+          data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+          data-type="standard"
+          data-shape="rectangular"
+          data-theme="outline"
+          data-text="signin_with"
+          data-size="large"
+          data-logo_alignment="left">
+        </div>
+      </div>
+      <div>
+        <h3 class="text-2xl font-semibold grad-text">Why TriNoteX?</h3>
+        <ul class="mt-6 space-y-4 text-slate-300 text-md">
+          <li class="flex items-start"><i class="ri-shield-check-line mr-3 text-teal-400 text-xl mt-1"></i>Safe payments with automatic 10% platform fee</li>
+          <li class="flex items-start"><i class="ri-cloud-line mr-3 text-teal-400 text-xl mt-1"></i>Instant delivery after purchase</li>
+          <li class="flex items-start"><i class="ri-bar-chart-line mr-3 text-teal-400 text-xl mt-1"></i>Earnings dashboard & analytics</li>
+          <li class="flex items-start"><i class="ri-global-line mr-3 text-teal-400 text-xl mt-1"></i>Global student community</li>
+          <li class="flex items-start"><i class="ri-zzz-line mr-3 text-teal-400 text-xl mt-1"></i>Zero paperwork, fully automated</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- Dashboard -->
+  <section id="dashboard" class="view py-16">
+    <div class="max-w-7xl mx-auto px-4">
+      <h2 class="text-3xl font-bold grad-text">Your Dashboard</h2>
+      <p class="text-md text-slate-400 mt-2">Welcome, <span id="userName" class="font-semibold text-teal-300">Guest</span>. Manage your notes, sales, and payouts.</p>
+
+      <div class="mt-10 grid md:grid-cols-3 gap-6">
+        <div class="glass p-6 rounded-2xl hover-lift glow-green">
+          <div class="text-4xl font-black grad-text" id="dashEarnings">₹0</div>
+          <div class="text-sm text-slate-400 mt-2">Total Earnings (Your 90%)</div>
+        </div>
+        <div class="glass p-6 rounded-2xl hover-lift glow-purple">
+          <div class="text-4xl font-black grad-text" id="dashPending">₹0</div>
+          <div class="text-sm text-slate-400 mt-2">Pending Payout</div>
+        </div>
+        <div class="glass p-6 rounded-2xl hover-lift">
+          <div class="text-4xl font-black grad-text" id="dashSold">0</div>
+          <div class="text-sm text-slate-400 mt-2">Copies Sold</div>
+        </div>
+      </div>
+
+      <div class="mt-12 grid md:grid-cols-3 gap-8">
+        <!-- Upload Card -->
+        <div class="md:col-span-1 glass p-6 rounded-2xl hover-lift">
+          <h3 class="font-semibold text-xl grad-text">Upload New Notes</h3>
+          <form id="uploadForm" class="mt-5 space-y-4">
+            <input id="noteTitle" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all" placeholder="Title" required>
+            <textarea id="noteDesc" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all" placeholder="Short description" rows="3" required></textarea>
+            <input id="notePrice" type="number" min="0" step="1" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all" placeholder="Price (₹)" required>
+            <input id="noteFile" type="file" accept=".pdf,.doc,.docx,.png,.jpg,.jpeg" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-teal-400 file:text-slate-900 hover:file:bg-teal-300 transition-all" required>
+            <button class="btn-shine w-full px-5 py-3 rounded-xl bg-emerald-400 text-slate-900 font-bold mt-2 hover-lift glow-green"><i class="ri-upload-2-line mr-2"></i>Upload</button>
+          </form>
+        </div>
+
+        <!-- Your Listings -->
+        <div class="md:col-span-2 glass p-6 rounded-2xl hover-lift">
+          <div class="flex items-center justify-between">
+            <h3 class="font-semibold text-xl grad-text">Your Listings</h3>
+            <button id="withdrawBtn" class="px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-sm transition-all hover-lift">Withdraw (Mock)</button>
+          </div>
+          <div id="yourNotes" class="mt-5 grid sm:grid-cols-2 lg:grid-cols-3 gap-5"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Marketplace -->
+  <section id="marketplace" class="view py-16">
+    <div class="max-w-7xl mx-auto px-4">
+      <div class="flex items-center gap-4 flex-wrap">
+        <h2 class="text-3xl font-bold grad-text">Marketplace</h2>
+        <div class="ml-auto flex gap-3">
+          <input id="searchBox" placeholder="Search notes..." class="px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all w-72">
+          <button id="clearSearch" class="px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 transition-all hover-lift">Clear</button>
+        </div>
+      </div>
+      <div id="marketGrid" class="mt-8 grid sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"></div>
+    </div>
+  </section>
+
+  <!-- Admin -->
+  <section id="admin" class="view py-16">
+    <div class="max-w-7xl mx-auto px-4">
+      <h2 class="text-3xl font-bold grad-text">Admin Panel</h2>
+      <p class="text-md text-slate-400 mt-2">Founders: Shantanu • Shriansh • Abdul</p>
+
+      <div id="adminLoginCard" class="glass p-8 rounded-2xl mt-8 max-w-md hover-lift">
+        <h3 class="font-semibold text-xl grad-text">Admin Login</h3>
+        <form id="adminForm" class="mt-5 space-y-4">
+          <input id="adminUser" placeholder="Username" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all" required>
+          <input id="adminPass" type="password" placeholder="Password" class="w-full px-4 py-3 rounded-xl bg-white/5 border border-white/10 focus:outline-none focus:ring-2 focus:ring-teal-400 transition-all" required>
+          <button class="btn-shine w-full px-5 py-3 rounded-xl bg-violet-400 text-slate-900 font-bold hover-lift glow-purple">Enter</button>
+        </form>
+      </div>
+
+      <div id="adminContent" class="hidden mt-10">
+        <div class="grid md:grid-cols-4 gap-6">
+          <div class="glass p-5 rounded-2xl hover-lift">
+            <div class="text-3xl font-black grad-text" id="aUsers">0</div>
+            <div class="text-sm text-slate-400 mt-2">Total Users</div>
+          </div>
+          <div class="glass p-5 rounded-2xl hover-lift">
+            <div class="text-3xl font-black grad-text" id="aNotes">0</div>
+            <div class="text-sm text-slate-400 mt-2">Notes Listed</div>
+          </div>
+          <div class="glass p-5 rounded-2xl hover-lift">
+            <div class="text-3xl font-black grad-text" id="aGMV">₹0</div>
+            <div class="text-sm text-slate-400 mt-2">Gross Volume</div>
+          </div>
+          <div class="glass p-5 rounded-2xl hover-lift">
+            <div class="text-3xl font-black grad-text" id="aFees">₹0</div>
+            <div class="text-sm text-slate-400 mt-2">Platform Fees (10%)</div>
+          </div>
+        </div>
+
+        <div class="mt-10 glass p-8 rounded-2xl hover-lift">
+          <h3 class="font-semibold text-xl grad-text">All Listings</h3>
+          <div id="adminListings" class="mt-6 grid sm:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Toast -->
+  <div id="toast" class="fixed bottom-6 left-1/2 -translate-x-1/2 hidden px-6 py-3 rounded-full bg-white text-slate-900 font-medium shadow-xl z-50 glass border border-white/20"></div>
+
+  <script>
+    // Initialize particles background
+    document.addEventListener('DOMContentLoaded', function() {
+      particlesJS('particles-js', {
+        particles: {
+          number: { value: 80, density: { enable: true, value_area: 800 } },
+          color: { value: "#ffffff" },
+          shape: { type: "circle" },
+          opacity: { value: 0.5, random: true },
+          size: { value: 3, random: true },
+          line_linked: {
+            enable: true,
+            distance: 150,
+            color: "#a78bfa",
+            opacity: 0.4,
+            width: 1
+          },
+          move: {
+            enable: true,
+            speed: 2,
+            direction: "none",
+            random: true,
+            straight: false,
+            out_mode: "out",
+            bounce: false
+          }
+        },
+        interactivity: {
+          detect_on: "canvas",
+          events: {
+            onhover: { enable: true, mode: "grab" },
+            onclick: { enable: true, mode: "push" },
+            resize: true
+          }
+        },
+        retina_detect: true
+      });
+      
+      // Create stars
+      createStars();
+      
+      // Initialize GSAP animations
+      initAnimations();
+    });
+    
+    // Create starry background
+    function createStars() {
+      const starsContainer = document.querySelector('.stars');
+      const starsCount = 150;
+      
+      for (let i = 0; i < starsCount; i++) {
+        const star = document.createElement('div');
+        star.classList.add('star');
+        
+        const size = Math.random() * 3;
+        star.style.width = `${size}px`;
+        star.style.height = `${size}px`;
+        star.style.left = `${Math.random() * 100}%`;
+        star.style.top = `${Math.random() * 100}%`;
+        star.style.animationDuration = `${Math.random() * 3 + 2}s`;
+        star.style.animationDelay = `${Math.random() * 2}s`;
+        
+        starsContainer.appendChild(star);
+      }
+    }
+    
+    // Initialize GSAP animations
+    function initAnimations() {
+      // Register ScrollTrigger plugin
+      gsap.registerPlugin(ScrollTrigger);
+      
+      // Animate elements on scroll
+      gsap.utils.toArray('.fadein').forEach(el => {
+        gsap.to(el, {
+          opacity: 1,
+          y: 0,
+          duration: 0.8,
+          scrollTrigger: {
+            trigger: el,
+            start: "top 85%",
+            toggleActions: "play none none none"
+          }
+        });
+      });
+      
+      // Animate stats counting
+      const stats = ['statUsers', 'statNotes', 'statVolume'];
+      stats.forEach(statId => {
+        const el = document.getElementById(statId);
+        if (el) {
+          ScrollTrigger.create({
+            trigger: el,
+            start: "top 85%",
+            onEnter: () => animateValue(el, 0, parseInt(el.textContent.replace('₹','')) || 0, 2000)
+          });
+        }
+      });
+    }
+    
+    // Animate counting values
+    function animateValue(el, start, end, duration) {
+      let startTimestamp = null;
+      const step = (timestamp) => {
+        if (!startTimestamp) startTimestamp = timestamp;
+        const progress = Math.min((timestamp - startTimestamp) / duration, 1);
+        const value = Math.floor(progress * (end - start) + start);
+        el.textContent = el.id === 'statVolume' ? '₹' + value : value;
+        if (progress < 1) {
+          window.requestAnimationFrame(step);
+        }
+      };
+      window.requestAnimationFrame(step);
+    }
+
+    // Simple SPA navigation
+    const navButtons = document.querySelectorAll('[data-nav]');
+    const views = document.querySelectorAll('.view');
+    
+    function show(id){
+      views.forEach(v=>v.classList.remove('active'));
+      const el = document.querySelector(id);
+      if(el){ 
+        el.classList.add('active'); 
+        window.scrollTo({top:0,behavior:'smooth'});
+        
+        // Animate page entrance
+        gsap.fromTo(el, 
+          { opacity: 0, y: 20 }, 
+          { opacity: 1, y: 0, duration: 0.5, ease: "power2.out" }
+        );
+      }
+    }
+    
+    navButtons.forEach(b=>b.addEventListener('click',()=>show(b.dataset.nav)));
+
+    // Toast helper
+    const toastEl = document.getElementById('toast');
+    function toast(msg){
+      toastEl.textContent = msg; 
+      toastEl.classList.remove('hidden');
+      
+      // Animate toast
+      gsap.fromTo(toastEl, 
+        { y: 100, opacity: 0 }, 
+        { y: 0, opacity: 1, duration: 0.5, ease: "back.out(1.7)" }
+      );
+      
+      setTimeout(()=> {
+        gsap.to(toastEl, {
+          y: 100,
+          opacity: 0,
+          duration: 0.5,
+          ease: "back.in(1.7)",
+          onComplete: () => toastEl.classList.add('hidden')
+        });
+      }, 2200);
+    }
+
+    // LocalStorage state
+    const S = {
+      get users(){ return JSON.parse(localStorage.getItem('tnx_users')||'[]'); },
+      set users(v){ localStorage.setItem('tnx_users', JSON.stringify(v)); },
+      get me(){ return JSON.parse(localStorage.getItem('tnx_me')||'null'); },
+      set me(v){ localStorage.setItem('tnx_me', JSON.stringify(v)); },
+      get notes(){ return JSON.parse(localStorage.getItem('tnx_notes')||'[]'); },
+      set notes(v){ localStorage.setItem('tnx_notes', JSON.stringify(v)); },
+      get sales(){ return JSON.parse(localStorage.getItem('tnx_sales')||'[]'); },
+      set sales(v){ localStorage.setItem('tnx_sales', JSON.stringify(v)); },
+    };
+
+    // Seed demo data once
+    if(!localStorage.getItem('tnx_seed')){
+      S.users = [
+        { id: 'u_1', email: 'demo@student.com', name: 'Demo Student', balance: 0, sold: 5, pending: 450 },
+        { id: 'u_2', email: 'seller@example.com', name: 'Note Seller', balance: 1200, sold: 12, pending: 180 }
+      ];
+      S.notes = [
+        { id:'n_1', ownerId: 'u_2', title: 'Computer Science Fundamentals', desc: 'Complete notes for CS101 course', price: 150, fileName: 'cs101.pdf', fileUrl: '#', created: Date.now(), sold: 8 },
+        { id:'n_2', ownerId: 'u_2', title: 'Calculus Made Easy', desc: 'Simplified calculus concepts with examples', price: 200, fileName: 'calculus.pdf', fileUrl: '#', created: Date.now()-86400000, sold: 4 },
+        { id:'n_3', ownerId: 'u_1', title: 'Business Ethics', desc: 'Comprehensive guide to business ethics', price: 120, fileName: 'ethics.pdf', fileUrl: '#', created: Date.now()-172800000, sold: 3 }
+      ];
+      S.sales = [
+        { id:'s_1', noteId: 'n_1', sellerId: 'u_2', buyerId: 'u_1', price: 150, ts: Date.now()-86400000 },
+        { id:'s_2', noteId: 'n_2', sellerId: 'u_2', buyerId: 'u_1', price: 200, ts: Date.now()-43200000 },
+        { id:'s_3', noteId: 'n_3', sellerId: 'u_1', buyerId: 'u_2', price: 120, ts: Date.now()-21600000 }
+      ];
+      localStorage.setItem('tnx_seed','1');
+    }
+
+    // Stats update
+    function refreshStats(){
+      const users = S.users.length;
+      const notes = S.notes.length;
+      const gmv = S.sales.reduce((a,s)=>a+s.price,0);
+      const fees = Math.round(gmv*0.10);
+      document.getElementById('statUsers').textContent = users;
+      document.getElementById('statNotes').textContent = notes;
+      document.getElementById('statVolume').textContent = '₹'+gmv;
+      document.getElementById('aUsers').textContent = users;
+      document.getElementById('aNotes').textContent = notes;
+      document.getElementById('aGMV').textContent = '₹'+gmv;
+      document.getElementById('aFees').textContent = '₹'+fees;
+    }
+
+    // Auth
+    const authForm = document.getElementById('authForm');
+    const userNameSpan = document.getElementById('userName');
+
+    function ensureUser(email, name = null){
+      let users = S.users;
+      let u = users.find(x=>x.email===email);
+      if(!u){ 
+        u = { 
+          id: 'u_'+Date.now(), 
+          email, 
+          name: name || email.split('@')[0], 
+          balance: 0, 
+          sold:0, 
+          pending:0 
+        }; 
+        users.push(u); 
+        S.users = users; 
+      }
+      S.me = u; 
+      return u;
+    }
+
+    authForm.addEventListener('submit', e=>{
+      e.preventDefault();
+      const email = document.getElementById('authEmail').value.trim();
+      const pass = document.getElementById('authPass').value.trim();
+      if(!email || !pass){ toast('Enter email & password'); return; }
+      const u = ensureUser(email);
+      userNameSpan.textContent = u.name;
+      toast('Logged in as '+u.email);
+      show('#dashboard');
+      renderDashboard();
+    });
+
+    // Google Sign-In Handler
+    function handleGoogleSignIn(response) {
+      // Decode the JWT response
+      const responsePayload = parseJwt(response.credential);
+      
+      const email = responsePayload.email;
+      const name = responsePayload.name;
+      
+      const u = ensureUser(email, name);
+      userNameSpan.textContent = u.name;
+      toast('Signed in with Google as ' + u.email);
+      show('#dashboard');
+      renderDashboard();
+    }
+
+    function parseJwt(token) {
+      try {
+        return JSON.parse(atob(token.split('.')[1]));
+      } catch (e) {
+        return null;
+      }
+    }
+
+    // Upload flow
+    const uploadForm = document.getElementById('uploadForm');
+    const yourNotesWrap = document.getElementById('yourNotes');
+
+    uploadForm.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      const me = S.me; if(!me){ toast('Login required'); show('#auth'); return; }
+      const title = document.getElementById('noteTitle').value.trim();
+      const desc = document.getElementById('noteDesc').value.trim();
+      const price = parseInt(document.getElementById('notePrice').value||'0');
+      const file = document.getElementById('noteFile').files[0];
+      if(!title || !desc || !file){ toast('All fields required'); return; }
+
+      const fileUrl = URL.createObjectURL(file);
+      const note = { id:'n_'+Date.now(), ownerId: me.id, title, desc, price: Math.max(0,price), fileName:file.name, fileUrl, created: Date.now(), sold:0 };
+      const arr = S.notes; arr.unshift(note); S.notes = arr;
+
+      uploadForm.reset();
+      toast('Note listed successfully');
+      renderDashboard();
+      renderMarket();
+      refreshStats();
+    });
+
+    function renderDashboard(){
+      const me = S.me; if(!me){ return; }
+      const myNotes = S.notes.filter(n=>n.ownerId===me.id);
+      yourNotesWrap.innerHTML = myNotes.map(n=>cardNote(n, true)).join('');
+      const mySales = S.sales.filter(s=>s.sellerId===me.id);
+      const gross = mySales.reduce((a,s)=>a+s.price,0);
+      const myShare = Math.round(gross*0.90);
+      const pending = me.pending || 0;
+      document.getElementById('dashEarnings').textContent = '₹'+myShare;
+      document.getElementById('dashPending').textContent = '₹'+pending;
+      document.getElementById('dashSold').textContent = mySales.length;
+    }
+
+    // Withdraw (mock)
+    document.getElementById('withdrawBtn').addEventListener('click',()=>{
+      const me = S.me; if(!me){ return; }
+      const mySales = S.sales.filter(s=>s.sellerId===me.id);
+      const gross = mySales.reduce((a,s)=>a+s.price,0);
+      const myShare = Math.round(gross*0.90);
+      if(myShare<=0){ toast('No earnings yet'); return; }
+      me.pending = 0; me.balance = myShare; // mock
+      S.me = me;
+      // also persist user list
+      const users = S.users.map(u=> u.id===me.id? me : u);
+      S.users = users;
+      toast('Withdrawal requested (mock)');
+      renderDashboard();
+    });
+
+    // Marketplace
+    const marketGrid = document.getElementById('marketGrid');
+    const searchBox = document.getElementById('searchBox');
+    const clearSearch = document.getElementById('clearSearch');
+
+    function cardNote(n, mine=false){
+      return `
+        <div class="glass p-5 rounded-2xl flex flex-col hover-lift transition-all duration-300">
+          <div class="flex items-start justify-between">
+            <div>
+              <h4 class="font-semibold text-lg">${n.title}</h4>
+              <p class="text-sm text-slate-400 mt-1">${n.desc}</p>
+            </div>
+            <span class="px-3 py-1.5 rounded-xl bg-white/10 text-sm font-medium">₹${n.price}</span>
+          </div>
+          <div class="mt-3 text-xs text-slate-400">File: ${n.fileName}</div>
+          <div class="mt-5 flex items-center gap-2 mt-auto">
+            ${ mine
+              ? `<a href="${n.fileUrl}" download class="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-sm transition-all">Download</a>
+                 <button data-del="${n.id}" class="px-3 py-2 rounded-xl bg-rose-500/80 hover:bg-rose-500 text-slate-900 text-sm transition-all">Remove</button>`
+              : `<button data-buy="${n.id}" class="px-4 py-2 rounded-xl bg-teal-400 text-slate-900 font-semibold transition-all hover-lift glow">Buy</button>`
+            }
+          </div>
+        </div>`
+    }
+
+    function renderMarket(){
+      const q = (searchBox.value||'').toLowerCase();
+      const items = S.notes.filter(n=> !q || n.title.toLowerCase().includes(q) || n.desc.toLowerCase().includes(q));
+      marketGrid.innerHTML = items.map(n=>cardNote(n,false)).join('');
+    }
+
+    searchBox.addEventListener('input', renderMarket);
+    clearSearch.addEventListener('click',()=>{ searchBox.value=''; renderMarket(); });
+
+    // Delegated actions (buy/delete)
+    document.addEventListener('click', (e)=>{
+      // ripple effect on clickable buttons
+      if(e.target.tagName==='BUTTON' && e.target.classList.contains('btn-shine')===false){
+        const r = document.createElement('span');
+        const rect = e.target.getBoundingClientRect();
+        r.style.left = (e.clientX-rect.left)+'px';
+        r.style.top = (e.clientY-rect.top)+'px';
+        r.className='absolute w-24 h-24 -ml-12 -mt-12 rounded-full bg-white/20 animate-ping pointer-events-none';
+        e.target.appendChild(r); setTimeout(()=>r.remove(),600);
+      }
+
+      const delId = e.target.getAttribute('data-del');
+      if(delId){
+        const me = S.me; if(!me){ toast('Login required'); return; }
+        const note = S.notes.find(n=>n.id===delId);
+        if(!note || note.ownerId!==me.id){ toast('Not allowed'); return; }
+        S.notes = S.notes.filter(n=>n.id!==delId);
+        toast('Listing removed');
+        renderDashboard(); renderMarket(); refreshStats();
+      }
+
+      const buyId = e.target.getAttribute('data-buy');
+      if(buyId){
+        const me = S.me; if(!me){ toast('Login to buy'); show('#auth'); return; }
+        const n = S.notes.find(x=>x.id===buyId);
+        if(!n){ toast('Item missing'); return; }
+        // MOCK PAYMENT: create a sale entry
+        const sale = { id:'s_'+Date.now(), noteId: n.id, sellerId: n.ownerId, buyerId: me.id, price: n.price, ts: Date.now() };
+        const sales = S.sales; sales.push(sale); S.sales = sales;
+        // update seller pending
+        const users = S.users.map(u=>{
+          if(u.id===n.ownerId){
+            u.sold = (u.sold||0)+1;
+            u.pending = Math.round((u.pending||0) + n.price*0.90);
+          }
+          return u;
+        });
+        S.users = users;
+        toast('Payment success (mock). File unlocked!');
+        // Animate purchase success
+        gsap.to(e.target, {
+          backgroundColor: '#34d399',
+          color: '#0f172a',
+          duration: 0.3,
+          yoyo: true,
+          repeat: 1
+        });
+        // instantly deliver (download)
+        window.open(n.fileUrl, '_blank');
+        refreshStats();
+        renderDashboard();
+      }
+    });
+
+    // Admin
+    const adminForm = document.getElementById('adminForm');
+    const adminLoginCard = document.getElementById('adminLoginCard');
+    const adminContent = document.getElementById('adminContent');
+    const adminListings = document.getElementById('adminListings');
+
+    adminForm.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const u = document.getElementById('adminUser').value.trim();
+      const p = document.getElementById('adminPass').value.trim();
+      if(u==='TriNoteX999' && p==='1854726973'){
+        adminLoginCard.classList.add('hidden');
+        adminContent.classList.remove('hidden');
+        toast('Welcome, Admin');
+        renderAdmin();
+      } else {
+        toast('Invalid admin credentials');
+      }
+    });
+
+    function renderAdmin(){
+      refreshStats();
+      adminListings.innerHTML = S.notes.map(n=>`
+        <div class='glass p-5 rounded-2xl hover-lift'>
+          <div class='flex items-center justify-between'>
+            <div>
+              <div class='font-semibold'>${n.title}</div>
+              <div class='text-sm text-slate-400 mt-1'>₹${n.price} • ${n.fileName}</div>
+            </div>
+            <button data-admin-del='${n.id}' class='px-3 py-2 rounded-xl bg-rose-500/80 hover:bg-rose-500 text-slate-900 text-sm transition-all'>Remove</button>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    document.addEventListener('click', (e)=>{
+      const id = e.target.getAttribute('data-admin-del');
+      if(id){ 
+        S.notes = S.notes.filter(n=>n.id!==id); 
+        toast('Listing removed by admin'); 
+        renderAdmin(); 
+        renderMarket(); 
+        refreshStats(); 
+      }
+    });
+
+    // Initial renders
+    refreshStats();
+    renderMarket();
+    
+    // Animate elements on page load
+    setTimeout(() => {
+      document.querySelectorAll('.fadein').forEach(e => {
+        e.classList.add('show');
+      });
+    }, 100);
+  </script>
+
+  <!-- Footer -->
+  <footer class="mt-20 border-t border-white/10">
+    <div class="max-w-7xl mx-auto px-4 py-10 text-sm text-slate-400 flex flex-wrap items-center gap-4">
+      <span>© <span id="yr"></span> TriNoteX • A student project by Shantanu • Shriansh • Abdul</span>
+      <span class="ml-auto">Platform auto-deducts 10% fee on sales.</span>
+    </div>
+  </footer>
+  <script>document.getElementById('yr').textContent = new Date().getFullYear();</script>
+</body>
+</html>
